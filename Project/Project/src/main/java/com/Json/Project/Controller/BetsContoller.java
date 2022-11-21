@@ -1,10 +1,13 @@
 package com.Json.Project.Controller;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,6 +21,7 @@ import com.Json.Project.Service.Producer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/bets")
@@ -28,6 +32,9 @@ public class BetsContoller {
 	
 	@Autowired
 	private Producer producer;
+
+	@Value("${file.upload-dir}")
+	String FILE_DIRECTORY;
 	
 	
 	//fetch the all the records from the database
@@ -38,12 +45,18 @@ public class BetsContoller {
 	
 
 	//insert data into database from the json file
-	@PostMapping("/post/{path}")
-	public Iterable<Bets> save(@PathVariable("path") String path){
+	@PostMapping("/post")
+	public Iterable<Bets> save(@RequestParam("file") MultipartFile file) throws IOException{
+		File myFile=new File(FILE_DIRECTORY+file.getOriginalFilename());
+		myFile.createNewFile();
+		FileOutputStream fos=new FileOutputStream(myFile);
+		fos.write(file.getBytes());
+		fos.close();
+
 		ObjectMapper mapper=new ObjectMapper();
 		mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		TypeReference<List<Bets>> typereference=new TypeReference<List<Bets>>() {};
-		InputStream inputStream=typereference.getClass().getResourceAsStream("/Json/"+path);
+		InputStream inputStream=typereference.getClass().getResourceAsStream("/Json/"+file.getOriginalFilename());
 		Iterable<Bets> service = null;
 		try {
 			List<Bets> bet=mapper.readValue(inputStream, typereference);
