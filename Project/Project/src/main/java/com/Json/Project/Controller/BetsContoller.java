@@ -45,7 +45,7 @@ public class BetsContoller {
 	
 
 	//insert data into database from the json file
-	@PostMapping("/post")
+	@PostMapping("/uploadJsonFile")
 	public Iterable<Bets> save(@RequestParam("file") MultipartFile file) throws IOException{
 		File myFile=new File(FILE_DIRECTORY+file.getOriginalFilename());
 		myFile.createNewFile();
